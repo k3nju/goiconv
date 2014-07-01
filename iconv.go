@@ -42,8 +42,7 @@ func (iconv *IConv) IConv(inbuf, outbuf []byte) (inleftbytes, outleftbytes []byt
 	return inbuf[inbufLen-int(inbytesleft):], outbuf[:outbufCap-int(outbytesleft)], err
 }
 
-func (iconv *IConv) ConvertString(instr string) (string, error) {
-	inbuf := []byte(instr)
+func (iconv *IConv) ConvertBytes(inbuf []byte) ([]byte, error) {
 	inbufp := (*C.char)(unsafe.Pointer(&inbuf[0]))
 	inbytesleft := C.size_t(len(inbuf))
 	outbufCap := len(inbuf) * 2
@@ -66,5 +65,5 @@ func (iconv *IConv) ConvertString(instr string) (string, error) {
 		}
 	}
 
-	return buf.String(), err
+	return buf.Bytes(), err
 }
