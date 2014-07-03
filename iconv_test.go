@@ -42,12 +42,21 @@ func TestUtf8ToUtf8(t *testing.T) {
 	}
 }
 
+func TestUtf8ToISO2022JP(t *testing.T) {
+	in := []byte("日本語")
+	out := iconv("utf8", "iso-2022-jp", in, t)
+	iso2022jp := []byte("\x1b\x24\x42\x46\x7c\x4b\x5c\x38\x6c")
+	if !bytes.Equal(out, iso2022jp) {
+		t.Error("unexpected output returned")
+	}
+}
+
 func TestIConv(t *testing.T) {
 	// source data. 日本語 in utf8
 	inbuf := []byte("\xe6\x97\xa5\xe6\x9c\xac\xe8\xaa\x9e")
 
 	// open iconv
-	iconv, err := NewIConv("utf8", "iso-2022-jp") // from:utf8 to:iso-2022-jp
+	iconv, err := NewIConv("utf8", "sjis") // from:utf8 to:sjis
 	if err != nil {
 		// C.iconv_open returned an error.
 		t.Fatal("unexpected error ", err)
@@ -79,5 +88,33 @@ func TestIConv(t *testing.T) {
 		}
 	}
 
-	t.Logf("bytes converted to iso-2022-jp = % x\n", buf)
+	t.Logf("bytes converted to sjis = % x\n", buf)
+	sjis := []byte("\x93\xfa\x96\x7b\x8c\xea")
+	if !bytes.Equal(buf, sjis) {
+		t.Error("converting from utf8 to sjis failed")
+	}
+}
+
+func TestConvertBytes(t *testing.T) {
+	// 日本語 in utf8
+	inbuf := []byte("\xe6\x97\xa5\xe6\x9c\xac\xe8\xaa\x9e")
+
+	// open iconv
+	iconv, err := NewIConv("utf8", "euc-jp")
+	if err != nil {
+		t.Fatal("unexpected error ", err)
+		return
+	}
+	defer iconv.Close()
+
+	buf, err := iconv.ConvertBytes(inbuf)
+	if err != nil {
+		t.Fatal("unexpected error ", err)
+		return
+	}
+
+	eucjp := []byte("\xc6\xfc\xcb\xdc\xb8\xec")
+	if !bytes.Equal(buf, eucjp) {
+		t.Error("converting from utf8 from euc-jp failed")
+	}
 }
